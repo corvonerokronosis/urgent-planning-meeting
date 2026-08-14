@@ -24,15 +24,22 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(() => snapshot.finishedReason ? 'result' : 'start')
   const currentEvent = getEventById(scenario, snapshot.currentEventId)
 
+  const enterGame = () => {
+    setScreen('game')
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    })
+  }
+
   const start = (settings: GameSettings) => {
     startRun(settings)
     emitGameEvent('start', { mode: settings.mode, challengeId: settings.challengeId, timedCrises: settings.timedCrises })
-    setScreen('game')
+    enterGame()
   }
 
   const resume = () => {
     emitGameEvent('resume', { completedDecisions: snapshot.decisions.length })
-    setScreen('game')
+    enterGame()
   }
 
   const restart = () => {

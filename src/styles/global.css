@@ -30,18 +30,18 @@
 }
 
 html {
-  min-width: 320px;
+  width: 100%;
+  min-width: 0;
   min-height: 100%;
-  overflow-x: hidden;
   background: var(--navy-950);
 }
 
 body {
+  width: 100%;
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
   background: var(--navy-950);
 }
 
@@ -63,10 +63,11 @@ a:focus-visible {
 }
 
 #root {
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
 }
 
 .brand {
@@ -262,6 +263,7 @@ a:focus-visible {
 
 .start-screen__grid {
   width: min(1260px, calc(100% - 80px));
+  min-width: 0;
   flex: 1;
   margin: 0 auto;
   display: grid;
@@ -274,6 +276,8 @@ a:focus-visible {
 }
 
 .start-screen__intro {
+  width: 100%;
+  min-width: 0;
   max-width: 680px;
 }
 
@@ -300,6 +304,7 @@ a:focus-visible {
   color: #bfccd6;
   font-size: clamp(18px, 1.5vw, 22px);
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .start-screen__duration {
@@ -319,6 +324,9 @@ a:focus-visible {
 }
 
 .resource-brief {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border-top: 3px solid var(--coral);
   background: #f5f4ef;
   color: var(--ink);
@@ -462,6 +470,9 @@ a:focus-visible {
 /* Game shell */
 
 .game-shell {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: 100vh;
   height: 100dvh;
   display: grid;
@@ -613,7 +624,9 @@ a:focus-visible {
 }
 
 .game-main {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   height: 100%;
   display: grid;
   grid-template-rows: 96px minmax(0, 1fr);
@@ -705,6 +718,9 @@ a:focus-visible {
 }
 
 .chat-panel {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 0;
   background: var(--paper);
   overflow: hidden;
@@ -757,6 +773,9 @@ a:focus-visible {
 }
 
 .message-list {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: calc(100% - 46px);
   overflow-x: hidden;
   overflow-y: auto;
@@ -767,6 +786,8 @@ a:focus-visible {
 }
 
 .message {
+  width: 100%;
+  min-width: 0;
   max-width: 770px;
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
@@ -782,6 +803,14 @@ a:focus-visible {
   background: #fff;
   box-shadow: 0 4px 14px rgba(28, 38, 45, 0.045);
   position: relative;
+}
+
+.message__body p,
+.message__source,
+.decision__copy,
+.player-decision,
+.consequence-card {
+  overflow-wrap: anywhere;
 }
 
 .message__body::before {
@@ -912,6 +941,8 @@ a:focus-visible {
 /* Choices */
 
 .decision-panel {
+  width: 100%;
+  min-width: 0;
   max-width: 880px;
   margin-top: 26px;
   padding-top: 20px;
@@ -951,12 +982,15 @@ a:focus-visible {
 }
 
 .decision-list {
+  width: 100%;
+  min-width: 0;
   display: grid;
   gap: 8px;
 }
 
 .decision {
   width: 100%;
+  min-width: 0;
   min-height: 69px;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 28px;
@@ -1707,7 +1741,7 @@ a:focus-visible {
   .start-screen__grid,
   .result-screen__layout {
     width: calc(100% - 40px);
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 48px;
     padding: 57px 0 65px;
   }
@@ -1735,6 +1769,7 @@ a:focus-visible {
   .game-main {
     height: 100vh;
     height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 82px auto minmax(0, 1fr);
   }
 
@@ -1765,6 +1800,9 @@ a:focus-visible {
   }
 
   .status-panel--compact {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     display: block;
     padding: 9px 18px 10px;
     background: var(--navy-850);
@@ -1955,6 +1993,16 @@ a:focus-visible {
   .message-list {
     height: calc(100% - 40px);
     padding: 17px 13px 24px;
+  }
+
+  .message,
+  .decision-panel,
+  .player-decision,
+  .consequence-card,
+  .continue-row {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .message {
@@ -2161,6 +2209,9 @@ a:focus-visible {
 }
 
 .run-setup {
+  width: 100%;
+  min-width: 0;
+  min-inline-size: 0;
   max-width: 590px;
   margin: 0 0 20px;
   padding: 0;
@@ -2173,12 +2224,15 @@ a:focus-visible {
 }
 
 .run-setup__modes {
+  width: 100%;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
 }
 
 .run-setup__modes button {
+  min-width: 0;
   min-height: 64px;
   padding: 9px 11px;
   border: 1px solid rgba(183, 202, 216, 0.25);
@@ -2211,6 +2265,9 @@ a:focus-visible {
 
 .run-setup__select,
 .run-setup__timer {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: grid;
   align-items: center;
   margin-top: 8px;
@@ -2231,7 +2288,9 @@ a:focus-visible {
 }
 
 .run-setup__select select {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   height: 42px;
   padding: 0 30px 0 8px;
   border: 0;
@@ -2239,6 +2298,7 @@ a:focus-visible {
   background: var(--navy-850);
   color: #e6edf1;
   font-size: 11px;
+  text-overflow: ellipsis;
 }
 
 .run-setup__timer {
@@ -2653,6 +2713,9 @@ a:focus-visible {
   .start-screen__grid { padding-top: 36px; }
   .game-main { grid-template-rows: 82px auto auto minmax(0, 1fr); }
   .thread-tracker--compact {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     display: block;
     margin: 0;
     padding: 0 18px;
@@ -2661,7 +2724,15 @@ a:focus-visible {
     background: var(--navy-850);
     color: #fff;
   }
-  .thread-tracker--compact summary { display: flex; justify-content: space-between; margin: 0; padding: 7px 0; cursor: pointer; }
+  .thread-tracker--compact summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 7px 0;
+    cursor: pointer;
+  }
   .thread-tracker--compact summary span { color: var(--coral); }
   .thread-tracker--compact .thread-tracker__list { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 2px 0 10px; }
   .thread-tracker--compact .thread-tracker__item small { font-size: 9px; }
