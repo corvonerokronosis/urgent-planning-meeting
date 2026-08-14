@@ -11,16 +11,17 @@ type MessageListProps = {
 }
 
 export function MessageList({ messages, typingAuthor, updateToken, children }: MessageListProps) {
-  const endRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const latestMessage = messages.at(-1)
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    endRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'nearest' })
+    const list = listRef.current
+    list?.scrollTo({ top: list.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' })
   }, [messages.length, typingAuthor, updateToken])
 
   return (
-    <div className="message-list">
+    <div className="message-list" ref={listRef}>
       <div className="sr-only" aria-atomic="true" aria-live="polite">
         {latestMessage ? `${characters[latestMessage.author].name}: ${latestMessage.text}` : ''}
       </div>
@@ -57,7 +58,6 @@ export function MessageList({ messages, typingAuthor, updateToken, children }: M
         </div>
       ) : null}
       {children}
-      <div ref={endRef} />
     </div>
   )
 }
