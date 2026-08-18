@@ -598,7 +598,7 @@ a:focus-visible {
   border: 2px solid #fff;
   border-radius: 50%;
   background-repeat: no-repeat;
-  background-size: 500% 100%;
+  
   background-color: #1a2c3b;
   box-shadow: 0 2px 7px rgba(12, 22, 31, 0.18);
 }
