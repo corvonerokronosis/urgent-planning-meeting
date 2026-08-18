@@ -598,7 +598,7 @@ a:focus-visible {
   border: 2px solid #fff;
   border-radius: 50%;
   background-repeat: no-repeat;
-  
+  background-size: 500% auto;
   background-color: #1a2c3b;
   box-shadow: 0 2px 7px rgba(12, 22, 31, 0.18);
 }
@@ -2774,3 +2774,4 @@ a:focus-visible {
   .day-review__delayed { grid-column: 2; }
   .relationship-summary > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
