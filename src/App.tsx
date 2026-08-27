@@ -3,9 +3,8 @@ import { GameScreen } from './components/GameScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { StartScreen } from './components/StartScreen'
 import { scenario } from './data/scenario'
-import { getEventById } from './game/engine'
+import { DEFAULT_SETTINGS, getEventById } from './game/engine'
 import { emitGameEvent, useGameController } from './game/useGameController'
-import type { GameSettings } from './types/game'
 
 type Screen = 'start' | 'game' | 'result'
 
@@ -31,9 +30,9 @@ export function App() {
     })
   }
 
-  const start = (settings: GameSettings) => {
-    startRun(settings)
-    emitGameEvent('start', { mode: settings.mode, challengeId: settings.challengeId, timedCrises: settings.timedCrises })
+  const start = () => {
+    startRun(DEFAULT_SETTINGS)
+    emitGameEvent('start', { format: 'express' })
     enterGame()
   }
 
@@ -62,14 +61,12 @@ export function App() {
   if (screen === 'start') {
     return (
       <StartScreen
-        defaultSettings={snapshot.settings}
         hasSavedRun={hasSavedRun}
         onContinue={resume}
         onStart={start}
         savedSummary={hasSavedRun ? {
           stage: currentEvent.stage,
           time: currentEvent.time,
-          mode: snapshot.settings.mode,
           lastSavedAt,
         } : undefined}
       />

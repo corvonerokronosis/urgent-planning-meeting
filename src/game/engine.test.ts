@@ -20,23 +20,26 @@ import {
 } from './engine'
 
 describe('game content', () => {
-  it('contains a full 12-stage day with three branching stages', () => {
-    expect(scenario).toHaveLength(15)
+  it('contains a six-stage express game with one branching stage', () => {
+    expect(TOTAL_STAGES).toBe(6)
+    expect(scenario).toHaveLength(7)
     expect(new Set(scenario.map((event) => event.stage)).size).toBe(TOTAL_STAGES)
     expect(scenario.every((event) => event.choices.length === 3)).toBe(true)
-    expect(scenario.flatMap((event) => event.choices)).toHaveLength(45)
+    expect(scenario.flatMap((event) => event.choices)).toHaveLength(21)
     expect(scenario.filter((event) => event.timedDecision)).toHaveLength(3)
-    expect(scenario.filter((event) => event.messageVariants?.length)).toHaveLength(3)
-    expect(scenario.flatMap((event) => event.choices).filter((choice) => choice.availableWhen).length).toBeGreaterThanOrEqual(5)
+    expect(scenario.filter((event) => event.messageVariants?.length)).toHaveLength(1)
+    expect(scenario.flatMap((event) => event.choices).filter((choice) => choice.availableWhen).length).toBeGreaterThanOrEqual(3)
+    for (const event of scenario) {
+      for (const consequence of event.choices.flatMap((choice) => choice.delayedConsequences ?? [])) {
+        expect(consequence.afterEvents).toBeLessThanOrEqual(TOTAL_STAGES - event.stage)
+      }
+    }
   })
 
   it('selects the expected story branches', () => {
-    expect(getNextEvent(scenario, 2, INITIAL_STATS, ['reserveSupplier'])?.id).toBe('reserve-delivery')
-    expect(getNextEvent(scenario, 2, INITIAL_STATS, [])?.id).toBe('production-gap')
-    expect(getNextEvent(scenario, 5, INITIAL_STATS, ['scopeNegotiated'])?.id).toBe('scope-agreement')
-    expect(getNextEvent(scenario, 5, INITIAL_STATS, ['refuseChange'])?.id).toBe('client-escalation')
-    expect(getNextEvent(scenario, 9, { ...INITIAL_STATS, team: 42 }, [])?.id).toBe('team-overheat')
-    expect(getNextEvent(scenario, 9, INITIAL_STATS, [])?.id).toBe('team-rally')
+    expect(getNextEvent(scenario, 4, { ...INITIAL_STATS, team: 42 }, [])?.id).toBe('team-overheat')
+    expect(getNextEvent(scenario, 4, INITIAL_STATS, [])?.id).toBe('team-rally')
+    expect(getNextEvent(scenario, 5, INITIAL_STATS, [])?.id).toBe('shipping-decision')
   })
 })
 

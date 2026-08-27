@@ -227,7 +227,6 @@ export function GameScreen({
       <aside className="status-rail">
         <p className="status-rail__time-label">Рабочий день</p>
         <time>{event.time}</time>
-        <span className="status-rail__mode">{snapshot.settings.mode === 'training' ? 'Обучение' : 'Симуляция'}</span>
         <StatusPanel stats={snapshot.stats} effects={snapshot.lastEffects} />
         <ThreadTracker flags={snapshot.flags} stats={snapshot.stats} />
       </aside>
