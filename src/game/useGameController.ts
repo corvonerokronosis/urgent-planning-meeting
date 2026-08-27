@@ -29,8 +29,22 @@ import {
   updateMinimumStats,
 } from './engine'
 
-const STORAGE_KEY = 'urgent-planning-meeting:run:v3'
-const LEGACY_STORAGE_KEY = 'urgent-planning-meeting:run:v2'
+export const STORAGE_KEY = 'urgent-planning-meeting:run:v4'
+export const INCOMPATIBLE_STORAGE_KEYS = [
+  'urgent-planning-meeting:run:v3',
+  'urgent-planning-meeting:run:v2',
+]
+
+type RemovableStorage = Pick<Storage, 'removeItem'>
+
+function clearIncompatibleSavedRuns(storage: RemovableStorage) {
+  INCOMPATIBLE_STORAGE_KEYS.forEach((key) => storage.removeItem(key))
+}
+
+export function clearSavedRuns(storage: RemovableStorage) {
+  storage.removeItem(STORAGE_KEY)
+  clearIncompatibleSavedRuns(storage)
+}
 
 export type FinishReason = 'completed' | 'crisis' | null
 
@@ -99,12 +113,11 @@ function readSavedSnapshot(): GameSnapshot {
   if (typeof window === 'undefined') return createInitialSnapshot()
 
   try {
+    clearIncompatibleSavedRuns(window.localStorage)
     const currentRaw = window.localStorage.getItem(STORAGE_KEY)
-    const legacyRaw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
-    const raw = currentRaw ?? legacyRaw
-    if (!raw) return createInitialSnapshot()
+    if (!currentRaw) return createInitialSnapshot()
 
-    const saved = JSON.parse(raw) as Partial<GameSnapshot>
+    const saved = JSON.parse(currentRaw) as Partial<GameSnapshot>
     if (!saved.currentEventId || !saved.stats || !Array.isArray(saved.flags) || !Array.isArray(saved.decisions)) {
       return createInitialSnapshot()
     }
@@ -131,14 +144,10 @@ function readSavedSnapshot(): GameSnapshot {
       endTime: saved.endTime ?? null,
     }
 
-    if (!currentRaw && legacyRaw) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
-      window.localStorage.removeItem(LEGACY_STORAGE_KEY)
-    }
     return migrated
   } catch {
     window.localStorage.removeItem(STORAGE_KEY)
-    window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+    clearIncompatibleSavedRuns(window.localStorage)
     return createInitialSnapshot()
   }
 }
@@ -162,8 +171,7 @@ export function useGameController() {
   }, [snapshot])
 
   const startRun = useCallback((settings: GameSettings) => {
-    window.localStorage.removeItem(STORAGE_KEY)
-    window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+    clearSavedRuns(window.localStorage)
     setLastSavedAt(null)
     setSnapshot(createInitialSnapshot(settings))
   }, [])
@@ -293,8 +301,7 @@ export function useGameController() {
   }, [])
 
   const reset = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY)
-    window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+    clearSavedRuns(window.localStorage)
     setLastSavedAt(null)
     setSnapshot((current) => createInitialSnapshot(current.settings))
   }, [])

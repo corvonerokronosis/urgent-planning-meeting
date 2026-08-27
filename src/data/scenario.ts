@@ -14,9 +14,9 @@ const relationship = (
 const all = (...conditions: Condition[]): Condition => ({ type: 'all', conditions })
 const any = (...conditions: Condition[]): Condition => ({ type: 'any', conditions })
 
-export const TOTAL_STAGES = 12
+export const TOTAL_STAGES = 6
 
-export const scenario: GameEvent[] = [
+const scenarioCatalog: GameEvent[] = [
   {
     id: 'supply-delay',
     stage: 1,
@@ -331,7 +331,7 @@ export const scenario: GameEvent[] = [
         effects: { deadlines: 6, team: -5, client: -1 }, flags: ['qualityRisk'],
         reactions: [{ id: 'quality-c-r1', author: 'alexey', text: 'Продолжаю. Перед машиной нам понадобится очень честная финальная проверка.' }],
         delayedConsequences: [{
-          id: 'quality-risk-returns', afterEvents: 4, effects: { deadlines: -6, client: -8 }, flags: ['qualityPressure'],
+          id: 'quality-risk-returns', afterEvents: 2, effects: { deadlines: -6, client: -8 }, flags: ['qualityPressure'],
           messages: [{ id: 'quality-risk-message-later', author: 'alexey', tone: 'urgent', text: 'Отложенная проверка стала срочной: отклонение повторилось ещё в одной части партии.' }],
         }],
         insight: 'Вы выиграли время сейчас, но перенесли неопределённость ближе к моменту отгрузки.',
@@ -680,3 +680,18 @@ export const scenario: GameEvent[] = [
     ],
   },
 ]
+
+const EXPRESS_STAGE_BY_EVENT = {
+  'supply-delay': 1,
+  'missing-employee': 2,
+  'client-change': 3,
+  'quality-signal': 4,
+  'team-overheat': 5,
+  'team-rally': 5,
+  'shipping-decision': 6,
+} as const
+
+export const scenario: GameEvent[] = scenarioCatalog.flatMap((event) => {
+  const stage = EXPRESS_STAGE_BY_EVENT[event.id as keyof typeof EXPRESS_STAGE_BY_EVENT]
+  return stage ? [{ ...event, stage }] : []
+})
