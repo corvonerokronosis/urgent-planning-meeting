@@ -1,6 +1,6 @@
 import type { Effects, StatKey, Stats } from '../types/game'
 import { formatDelta, STAT_KEYS, STAT_META } from '../game/engine'
-import { CalendarIcon, ClientIcon, TeamIcon, WalletIcon } from './Icons'
+import { CalendarIcon, ClientIcon, TeamIcon } from './Icons'
 
 type StatusPanelProps = {
   stats: Stats
@@ -10,7 +10,6 @@ type StatusPanelProps = {
 
 const icons: Record<StatKey, typeof CalendarIcon> = {
   deadlines: CalendarIcon,
-  budget: WalletIcon,
   team: TeamIcon,
   client: ClientIcon,
 }

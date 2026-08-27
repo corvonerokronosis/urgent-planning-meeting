@@ -1,6 +1,6 @@
 import { TOTAL_STAGES } from '../data/scenario'
 import { Brand } from './Brand'
-import { ArrowIcon, CalendarIcon, ClientIcon, TeamIcon, WalletIcon } from './Icons'
+import { ArrowIcon, CalendarIcon, ClientIcon, TeamIcon } from './Icons'
 
 type StartScreenProps = {
   hasSavedRun: boolean
@@ -14,8 +14,7 @@ type StartScreenProps = {
 }
 
 const resources = [
-  { icon: CalendarIcon, title: 'Сроки', text: 'Удерживайте график, когда обстоятельства его не читали.', value: 64, className: 'deadlines' },
-  { icon: WalletIcon, title: 'Бюджет', text: 'Срочные решения особенно убедительны, пока есть резерв.', value: 66, className: 'budget' },
+  { icon: CalendarIcon, title: 'Срок', text: 'Удерживайте график, когда обстоятельства его не читали.', value: 64, className: 'deadlines' },
   { icon: TeamIcon, title: 'Команда', text: 'Люди закрывают задачи лучше, когда ещё доверяют процессу.', value: 70, className: 'team' },
   { icon: ClientIcon, title: 'Клиент', text: 'Доверие растёт от ясности и быстро заканчивается от сюрпризов.', value: 72, className: 'client' },
 ]
@@ -61,7 +60,7 @@ export function StartScreen({ hasSavedRun, savedSummary, onContinue, onStart }: 
         <section className="resource-brief" aria-label="Игровые показатели">
           <header>
             <span>Ваша зона ответственности</span>
-            <strong>Четыре ресурса. Один день.</strong>
+            <strong>Три показателя. Один день.</strong>
           </header>
           <div className="resource-brief__grid">
             {resources.map(({ icon: Icon, title, text, value, className }) => (
