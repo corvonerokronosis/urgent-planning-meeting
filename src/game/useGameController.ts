@@ -29,8 +29,9 @@ import {
   updateMinimumStats,
 } from './engine'
 
-export const STORAGE_KEY = 'urgent-planning-meeting:run:v4'
+export const STORAGE_KEY = 'urgent-planning-meeting:run:v5'
 export const INCOMPATIBLE_STORAGE_KEYS = [
+  'urgent-planning-meeting:run:v4',
   'urgent-planning-meeting:run:v3',
   'urgent-planning-meeting:run:v2',
 ]
@@ -109,6 +110,15 @@ function migratePendingConsequences(
   })
 }
 
+export function isStats(value: unknown): value is Stats {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<Stats>
+  return (['deadlines', 'team', 'client'] as const).every((key) => {
+    const stat = candidate[key]
+    return Number.isFinite(stat) && stat! >= 0 && stat! <= 100
+  })
+}
+
 function readSavedSnapshot(): GameSnapshot {
   if (typeof window === 'undefined') return createInitialSnapshot()
 
@@ -118,7 +128,14 @@ function readSavedSnapshot(): GameSnapshot {
     if (!currentRaw) return createInitialSnapshot()
 
     const saved = JSON.parse(currentRaw) as Partial<GameSnapshot>
-    if (!saved.currentEventId || !saved.stats || !Array.isArray(saved.flags) || !Array.isArray(saved.decisions)) {
+    if (
+      !saved.currentEventId
+      || !isStats(saved.stats)
+      || (saved.minimumStats !== undefined && !isStats(saved.minimumStats))
+      || !Array.isArray(saved.flags)
+      || !Array.isArray(saved.decisions)
+    ) {
+      window.localStorage.removeItem(STORAGE_KEY)
       return createInitialSnapshot()
     }
     getEventById(scenario, saved.currentEventId)
@@ -190,6 +207,8 @@ export function useGameController() {
       const delayedEffects = mergeEffects(
         ...(selectedChoice.delayedConsequences ?? []).map((consequence) => consequence.effects),
       )
+      const delayedConsequenceTexts = (selectedChoice.delayedConsequences ?? [])
+        .flatMap((consequence) => consequence.messages.map((message) => message.text))
       const relationshipEffects = getRelationshipEffects(selectedChoice)
       const stats = applyEffects(current.stats, selectedChoice.effects)
       const crisisKey = getCrisisKey(stats)
@@ -221,6 +240,7 @@ export function useGameController() {
             choiceText: selectedChoice.text,
             effects: selectedChoice.effects,
             delayedEffects,
+            delayedConsequenceTexts,
             relationshipEffects,
             insight: selectedChoice.insight,
           },

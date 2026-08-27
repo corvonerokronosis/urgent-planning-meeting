@@ -54,6 +54,10 @@ function hasEffects(effects: DecisionRecord['effects']) {
   return STAT_KEYS.some((key) => (effects[key] ?? 0) !== 0)
 }
 
+function hasDelayedOutcome(decision: DecisionRecord) {
+  return hasEffects(decision.delayedEffects) || Boolean(decision.delayedConsequenceTexts?.length)
+}
+
 export function ResultScreen({
   stats,
   minimumStats,
@@ -75,7 +79,7 @@ export function ResultScreen({
   const filteredDecisions = decisions.filter((decision) => {
     if (filter === 'all') return true
     if (filter === 'key') return pivotalIds.has(decision.eventId)
-    if (filter === 'delayed') return hasEffects(decision.delayedEffects)
+    if (filter === 'delayed') return hasDelayedOutcome(decision)
     return threadFilters[getEventById(scenario, decision.eventId).thread] === filter
   })
 
@@ -182,7 +186,7 @@ export function ResultScreen({
                   )
                 })}
               </div>
-              {hasEffects(decision.delayedEffects) ? (
+              {hasDelayedOutcome(decision) ? (
                 <div className="day-review__delayed">
                   <span>Вернулось позже</span>
                   {STAT_KEYS.map((key) => decision.delayedEffects[key] ? (
@@ -190,6 +194,9 @@ export function ResultScreen({
                       {STAT_META[key].shortLabel} {formatDelta(decision.delayedEffects[key])}
                     </i>
                   ) : null)}
+                  {decision.delayedConsequenceTexts?.map((text, textIndex) => (
+                    <p key={`${decision.eventId}-delayed-${textIndex}`}>{text}</p>
+                  ))}
                 </div>
               ) : null}
             </li>

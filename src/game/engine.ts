@@ -17,7 +17,6 @@ import type {
 
 export const INITIAL_STATS: Stats = {
   deadlines: 64,
-  budget: 66,
   team: 70,
   client: 72,
 }
@@ -37,13 +36,12 @@ export const DEFAULT_SETTINGS: GameSettings = {
 }
 
 export const STAT_META: Record<StatKey, { label: string; shortLabel: string }> = {
-  deadlines: { label: 'Сроки', shortLabel: 'Сроки' },
-  budget: { label: 'Бюджет', shortLabel: 'Бюджет' },
+  deadlines: { label: 'Срок', shortLabel: 'Срок' },
   team: { label: 'Команда', shortLabel: 'Команда' },
   client: { label: 'Клиент', shortLabel: 'Клиент' },
 }
 
-export const STAT_KEYS: StatKey[] = ['deadlines', 'budget', 'team', 'client']
+export const STAT_KEYS: StatKey[] = ['deadlines', 'team', 'client']
 
 export const CHALLENGES: Record<ChallengeId, { title: string; description: string }> = {
   balance: {
@@ -55,8 +53,8 @@ export const CHALLENGES: Record<ChallengeId, { title: string; description: strin
     description: 'Завершить день без переработок, больничного онлайн и последнего рывка.',
   },
   lean: {
-    title: 'Чистый резерв',
-    description: 'Закончить день с бюджетом не ниже 55 и без финансового риска.',
+    title: 'Сдержать расходы',
+    description: 'Обойтись без экстренной закупки, неоплаченного объёма и платного рывка.',
   },
 }
 
@@ -64,14 +62,8 @@ export const CRISIS_RECOVERY: Record<StatKey, { title: string; action: string; e
   deadlines: {
     title: 'График остановлен',
     action: 'Открыть аварийную ночную смену',
-    effects: { deadlines: 25, budget: -12, team: -14 },
+    effects: { deadlines: 25, team: -14 },
     flag: 'deadlineCrisisRecovered',
-  },
-  budget: {
-    title: 'Расходы заблокированы',
-    action: 'Запросить аварийный резерв',
-    effects: { budget: 25, deadlines: -8, client: -10 },
-    flag: 'budgetCrisisRecovered',
   },
   team: {
     title: 'Команда остановила работу',
@@ -82,7 +74,7 @@ export const CRISIS_RECOVERY: Record<StatKey, { title: string; action: string; e
   client: {
     title: 'Клиент остановил приёмку',
     action: 'Провести аварийную эскалацию',
-    effects: { client: 25, budget: -10, team: -8 },
+    effects: { client: 25, team: -8 },
     flag: 'clientCrisisRecovered',
   },
 }
@@ -119,20 +111,22 @@ export function collectFlags(current: string[], choiceOrFlags: Choice | string[]
   return Array.from(new Set([...current, ...flags]))
 }
 
-const relationshipStat: Record<CharacterId, StatKey> = {
+const relationshipStat: Partial<Record<CharacterId, StatKey>> = {
   alexey: 'team',
   mikhail: 'deadlines',
   irina: 'team',
   olga: 'client',
-  vera: 'budget',
 }
 
 export function getRelationshipEffects(choice: Choice): Partial<Relationships> {
   const authors = Array.from(new Set(choice.reactions.map((message) => message.author)))
-  const effects: Partial<Relationships> = {}
+  const effects: Partial<Relationships> = { ...choice.relationshipEffects }
 
   for (const author of authors) {
-    const statValue = choice.effects[relationshipStat[author]] ?? 0
+    if (choice.relationshipEffects?.[author] !== undefined) continue
+    const key = relationshipStat[author]
+    if (!key) continue
+    const statValue = choice.effects[key] ?? 0
     if (statValue === 0) continue
     const magnitude = Math.min(6, Math.max(1, Math.ceil(Math.abs(statValue) / 3)))
     effects[author] = statValue > 0 ? magnitude : -magnitude
@@ -282,7 +276,7 @@ export function getEnding(stats: Stats, flags: string[] = []): Ending {
     }
   }
 
-  if (stats.deadlines >= 76 && (stats.budget <= 44 || stats.team <= 44)) {
+  if (stats.deadlines >= 76 && stats.team <= 44) {
     return {
       id: 'firefighter',
       kicker: 'Задача закрыта. Цена проявится позже',
@@ -290,7 +284,7 @@ export function getEnding(stats: Stats, flags: string[] = []): Ending {
       description:
         'Вы удерживали темп любой ценой и почти каждый раз находили быстрый выход. Это эффективно в остром кризисе — и опасно, если кризис становится рабочим методом.',
       strength: 'Высокая решительность и умение защищать критический срок.',
-      risk: 'Бюджет или команда стали топливом для результата. Этот запас не бесконечен.',
+      risk: 'Команда стала топливом для результата. Этот запас не бесконечен.',
     }
   }
 
@@ -403,11 +397,12 @@ export function evaluateChallenge(
     }
   }
 
-  const passed = stats.budget >= 55 && !flags.includes('budgetRisk')
+  const costlyFlags = ['reserveSupplier', 'scopeDebt', 'paidOvertime', 'budgetRisk']
+  const passed = costlyFlags.every((flag) => !flags.includes(flag))
   return {
     id: challengeId,
     passed,
-    detail: passed ? `Финальный бюджет — ${stats.budget}, финансовый риск не принят.` : `Финальный бюджет — ${stats.budget}; нужен минимум 55 без финансового риска.`,
+    detail: passed ? 'Маршрут пройден без экстренных расходов.' : 'В маршруте была экстренная закупка, неоплаченный объём или платный рывок.',
     ...CHALLENGES[challengeId],
   }
 }
@@ -478,7 +473,7 @@ export function getThreadStatuses(stats: Stats, flags: string[]): ThreadStatus[]
     {
       id: 'supply',
       title: 'Поставка',
-      state: supplyRisk ? 'critical' : flags.includes('reserveSupplier') || stats.budget <= 45 ? 'watch' : 'stable',
+      state: supplyRisk ? 'critical' : flags.includes('reserveSupplier') ? 'watch' : 'stable',
       detail: supplyRisk ? 'Есть документальный или финансовый хвост' : flags.includes('reserveSupplier') ? 'Резервный маршрут активен' : 'Маршрут поставки контролируется',
     },
     {

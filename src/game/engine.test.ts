@@ -28,7 +28,7 @@ describe('game content', () => {
     expect(scenario.flatMap((event) => event.choices)).toHaveLength(21)
     expect(scenario.filter((event) => event.timedDecision)).toHaveLength(3)
     expect(scenario.filter((event) => event.messageVariants?.length)).toHaveLength(1)
-    expect(scenario.flatMap((event) => event.choices).filter((choice) => choice.availableWhen).length).toBeGreaterThanOrEqual(3)
+    expect(scenario.flatMap((event) => event.choices).filter((choice) => choice.availableWhen).length).toBeGreaterThanOrEqual(2)
     for (const event of scenario) {
       for (const consequence of event.choices.flatMap((choice) => choice.delayedConsequences ?? [])) {
         expect(consequence.afterEvents).toBeLessThanOrEqual(TOTAL_STAGES - event.stage)
@@ -44,17 +44,17 @@ describe('game content', () => {
 })
 
 describe('game engine', () => {
-  it('applies every choice effect and clamps all four stats', () => {
+  it('applies every choice effect and clamps all three stats', () => {
     for (const choice of scenario.flatMap((event) => event.choices)) {
       const next = applyEffects(INITIAL_STATS, choice.effects)
       expect(Object.values(next).every((value) => value >= 0 && value <= 100)).toBe(true)
     }
     expect(
       applyEffects(
-        { deadlines: 99, budget: 1, team: 50, client: 95 },
-        { deadlines: 20, budget: -20, client: 10 },
+        { deadlines: 99, team: 50, client: 95 },
+        { deadlines: 20, team: -70, client: 10 },
       ),
-    ).toEqual({ deadlines: 100, budget: 0, team: 50, client: 100 })
+    ).toEqual({ deadlines: 100, team: 0, client: 100 })
   })
 
   it('evaluates nested flag and stat conditions', () => {
@@ -102,17 +102,23 @@ describe('game engine', () => {
     const relationshipEffects = getRelationshipEffects(choice)
     expect(relationshipEffects.alexey).toBeLessThan(0)
     expect(applyRelationshipEffects(INITIAL_RELATIONSHIPS, relationshipEffects).alexey).toBeLessThan(60)
-    expect(updateMinimumStats(INITIAL_STATS, { ...INITIAL_STATS, budget: 31 }).budget).toBe(31)
+    const paidOvertime = scenario.flatMap((event) => event.choices).find((item) => item.id === 'spot-bonus')
+    expect(paidOvertime).toBeDefined()
+    expect(getRelationshipEffects(paidOvertime!).vera).toBe(-4)
+    expect(updateMinimumStats(INITIAL_STATS, { ...INITIAL_STATS, client: 31 }).client).toBe(31)
     expect(getCrisisKey({ ...INITIAL_STATS, team: 0 })).toBe('team')
     expect(getCrisisKey(INITIAL_STATS)).toBeNull()
   })
 
   it('evaluates all three replay challenges', () => {
-    expect(evaluateChallenge('balance', INITIAL_STATS, { ...INITIAL_STATS, budget: 46 }, [])?.passed).toBe(true)
-    expect(evaluateChallenge('balance', INITIAL_STATS, { ...INITIAL_STATS, budget: 44 }, [])?.passed).toBe(false)
+    expect(evaluateChallenge('balance', INITIAL_STATS, { ...INITIAL_STATS, client: 46 }, [])?.passed).toBe(true)
+    expect(evaluateChallenge('balance', INITIAL_STATS, { ...INITIAL_STATS, client: 44 }, [])?.passed).toBe(false)
     expect(evaluateChallenge('humane', INITIAL_STATS, INITIAL_STATS, ['teamReset'])?.passed).toBe(true)
     expect(evaluateChallenge('humane', INITIAL_STATS, INITIAL_STATS, ['paidOvertime'])?.passed).toBe(false)
-    expect(evaluateChallenge('lean', { ...INITIAL_STATS, budget: 56 }, INITIAL_STATS, [])?.passed).toBe(true)
+    expect(evaluateChallenge('lean', INITIAL_STATS, INITIAL_STATS, [])?.passed).toBe(true)
+    expect(evaluateChallenge('lean', INITIAL_STATS, INITIAL_STATS, ['reserveSupplier'])?.passed).toBe(false)
+    expect(evaluateChallenge('lean', INITIAL_STATS, INITIAL_STATS, ['scopeDebt'])?.passed).toBe(false)
+    expect(evaluateChallenge('lean', INITIAL_STATS, INITIAL_STATS, ['paidOvertime'])?.passed).toBe(false)
   })
 
   it('selects deterministic micro-variants and pivotal decisions', () => {
@@ -121,24 +127,24 @@ describe('game engine', () => {
     expect(getMessageVariant(variantEvent!, 42)).toEqual(getMessageVariant(variantEvent!, 42))
 
     const decisions = [
-      { eventId: 'a', eventTitle: 'A', eventTime: '09:00', choiceId: 'a', choiceLabel: 'A', choiceText: 'A', effects: { deadlines: 12, budget: -15 }, delayedEffects: {}, relationshipEffects: {}, insight: 'A' },
+      { eventId: 'a', eventTitle: 'A', eventTime: '09:00', choiceId: 'a', choiceLabel: 'A', choiceText: 'A', effects: { deadlines: 12, team: -15 }, delayedEffects: {}, relationshipEffects: {}, insight: 'A' },
       { eventId: 'b', eventTitle: 'B', eventTime: '10:00', choiceId: 'b', choiceLabel: 'B', choiceText: 'B', effects: { team: 14, deadlines: -3 }, delayedEffects: {}, relationshipEffects: {}, insight: 'B' },
-      { eventId: 'c', eventTitle: 'C', eventTime: '11:00', choiceId: 'c', choiceLabel: 'C', choiceText: 'C', effects: { client: 4, budget: -16 }, delayedEffects: {}, relationshipEffects: {}, insight: 'C' },
+      { eventId: 'c', eventTitle: 'C', eventTime: '11:00', choiceId: 'c', choiceLabel: 'C', choiceText: 'C', effects: { client: -16 }, delayedEffects: {}, relationshipEffects: {}, insight: 'C' },
     ]
     expect(getPivotalDecisions(decisions)).toHaveLength(3)
   })
 
   it('selects six predictable ending profiles', () => {
-    expect(getEnding({ deadlines: 12, budget: 20, team: 25, client: 28 }).id).toBe('tomorrow')
-    expect(getEnding({ deadlines: 84, budget: 37, team: 60, client: 62 }).id).toBe('firefighter')
-    expect(getEnding({ deadlines: 58, budget: 55, team: 54, client: 84 }).id).toBe('client-first')
-    expect(getEnding({ deadlines: 55, budget: 61, team: 84, client: 63 }).id).toBe('team-first')
+    expect(getEnding({ deadlines: 12, team: 25, client: 28 }).id).toBe('tomorrow')
+    expect(getEnding({ deadlines: 84, team: 37, client: 62 }).id).toBe('firefighter')
+    expect(getEnding({ deadlines: 58, team: 54, client: 84 }).id).toBe('client-first')
+    expect(getEnding({ deadlines: 55, team: 84, client: 63 }).id).toBe('team-first')
     expect(
       getEnding(
-        { deadlines: 62, budget: 59, team: 66, client: 64 },
+        { deadlines: 62, team: 66, client: 64 },
         ['juniorReview', 'scopeNegotiated', 'qualityContained'],
       ).id,
     ).toBe('systems')
-    expect(getEnding({ deadlines: 58, budget: 55, team: 62, client: 60 }).id).toBe('balanced')
+    expect(getEnding({ deadlines: 58, team: 62, client: 60 }).id).toBe('balanced')
   })
 })

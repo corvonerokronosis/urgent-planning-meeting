@@ -2,7 +2,7 @@ import type { Condition, GameEvent } from '../types/game'
 
 const hasFlag = (flag: string, present = true): Condition => ({ type: 'flag', flag, present })
 const stat = (
-  key: 'deadlines' | 'budget' | 'team' | 'client',
+  key: 'deadlines' | 'team' | 'client',
   operator: 'lt' | 'lte' | 'gt' | 'gte',
   value: number,
 ): Condition => ({ type: 'stat', key, operator, value })
@@ -66,7 +66,7 @@ const scenarioCatalog: GameEvent[] = [
         id: 'reserve-supplier',
         label: 'B',
         text: 'Покупаем у резервного и ускоряем доставку.',
-        effects: { deadlines: 9, budget: -15, team: 2 },
+        effects: { deadlines: 9, team: 2 },
         flags: ['reserveSupplier'],
         reactions: [
           { id: 'supply-b-r1', author: 'mikhail', tone: 'positive', text: 'Подтверждаю срочную закупку. Линию удержим, финансовый резерв станет заметно тоньше.' },
@@ -75,7 +75,7 @@ const scenarioCatalog: GameEvent[] = [
           {
             id: 'reserve-paperwork',
             afterEvents: 4,
-            effects: { budget: -4 },
+            effects: {},
             messages: [
               { id: 'reserve-paperwork-later', author: 'vera', text: 'По срочной закупке появился дополнительный платёж за логистику. Сюрприз небольшой, но уже наш.' },
             ],
@@ -203,14 +203,14 @@ const scenarioCatalog: GameEvent[] = [
         effects: { deadlines: 7, team: -2 }, flags: ['supplierRisk'],
         reactions: [{ id: 'reserve-b-r1', author: 'mikhail', text: 'Зафиксирую гарантию письмом. Это всё ещё риск, просто теперь он хорошо оформлен.' }],
         delayedConsequences: [{
-          id: 'supplier-risk-later', afterEvents: 3, effects: { client: -7, budget: -3 }, flags: ['qualityPressure'],
+          id: 'supplier-risk-later', afterEvents: 3, effects: { client: -7 }, flags: ['qualityPressure'],
           messages: [{ id: 'supplier-risk-message', author: 'alexey', tone: 'urgent', text: 'В срочной партии есть нестабильный параметр. Не критично, но теперь проверка должна быть шире.' }],
         }],
         insight: 'Документированная гарантия ускорила работу, но не убрала технический риск — он вернётся на проверке.',
       },
       {
         id: 'split-batch', label: 'C', text: 'Проверяем образцы и запускаем партию частями.',
-        effects: { deadlines: 1, budget: -3, team: -1 }, flags: ['segmentedBatch', 'qualityContained'],
+        effects: { deadlines: 1, team: -1 }, flags: ['segmentedBatch', 'qualityContained'],
         reactions: [{ id: 'reserve-c-r1', author: 'alexey', tone: 'positive', text: 'Сделаем входной контроль на образцах и разделим запуск. Не идеально быстро, зато управляемо.' }],
         insight: 'Частичный запуск сохранил темп и ограничил масштаб возможной ошибки, потребовав больше координации.',
       },
@@ -231,13 +231,13 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'local-split', label: 'A', text: 'Делим объём между местными подрядчиками.',
-        effects: { deadlines: 5, budget: -9, team: -1 }, flags: ['segmentedBatch'],
+        effects: { deadlines: 5, team: -1 }, flags: ['segmentedBatch'],
         reactions: [{ id: 'gap-a-r1', author: 'mikhail', tone: 'positive', text: 'Соберу две поставки и общий контроль. Логистики больше, зато линия не встанет.' }],
         insight: 'Диверсификация вернула темп, но добавила стоимость и сложность контроля двух партий.',
       },
       {
         id: 'cross-train', label: 'B', text: 'Используем паузу для обучения и подготовки следующего этапа.',
-        effects: { deadlines: -5, team: 7, budget: 1 }, flags: ['teamTraining'],
+        effects: { deadlines: -5, team: 7 }, flags: ['teamTraining'],
         reactions: [{ id: 'gap-b-r1', author: 'irina', tone: 'positive', text: 'Проведём короткий разбор процесса. Редкий случай: простой можно превратить в инвестицию.' }],
         insight: 'Вы не скрыли потерю времени, зато превратили её в рост автономности команды.',
       },
@@ -275,23 +275,23 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'accept-silently', label: 'A', text: 'Добавляем без пересогласования условий.',
-        effects: { deadlines: -10, budget: -6, team: -7, client: 8 }, flags: ['acceptSilently'],
+        effects: { deadlines: -10, team: -7, client: 8 }, flags: ['acceptSilently'],
         reactions: [{ id: 'client-a-r1', author: 'olga', text: 'Клиент будет доволен. Команде подберу формулировку без слов «ещё одна срочная мелочь».' }],
         delayedConsequences: [{
-          id: 'silent-scope-cost', afterEvents: 2, effects: { deadlines: -7, budget: -5 }, flags: ['scopeDebt'],
+          id: 'silent-scope-cost', afterEvents: 2, effects: { deadlines: -7 }, flags: ['scopeDebt'],
           messages: [{ id: 'silent-scope-message', author: 'vera', tone: 'urgent', text: 'Новый объём начал расходовать резерв. В договоре его по-прежнему не существует.' }],
         }],
         insight: 'Быстрое согласие укрепило отношения с клиентом, но создало неоплаченный объём и скрытый долг по срокам.',
       },
       {
         id: 'refuse-change', label: 'B', text: 'Отказываемся: объём уже зафиксирован.',
-        effects: { deadlines: 6, budget: 3, team: 3, client: -11 }, flags: ['refuseChange'],
+        effects: { deadlines: 6, team: 3, client: -11 }, flags: ['refuseChange'],
         reactions: [{ id: 'client-b-r1', author: 'olga', text: 'Зафиксирую отказ. Граница ясная, разговор будет неприятный.' }],
         insight: 'Вы защитили обязательства и команду, но оставили клиента без альтернативы и снизили доверие.',
       },
       {
         id: 'negotiate-change', label: 'C', text: 'Берём изменение после согласования цены и этапов.',
-        effects: { deadlines: -3, budget: 5, team: -2, client: 4 }, flags: ['scopeNegotiated'],
+        effects: { deadlines: -3, team: -2, client: 4 }, flags: ['scopeNegotiated'],
         reactions: [{ id: 'client-c-r1', author: 'olga', tone: 'positive', text: 'Предложу отдельный этап и стоимость. Клиент получит изменение, а команда — реальное обязательство.' }],
         insight: 'Переговоры заняли время, но превратили запрос в управляемый объём с понятной ценой.',
       },
@@ -316,13 +316,13 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'quality-stop', label: 'A', text: 'Останавливаем процесс и перепроверяем весь объём.',
-        effects: { deadlines: -13, budget: -4, team: 5, client: -2 }, flags: ['qualityFirst'],
+        effects: { deadlines: -13, team: 5, client: -2 }, flags: ['qualityFirst'],
         reactions: [{ id: 'quality-a-r1', author: 'alexey', tone: 'positive', text: 'Останавливаю линию. Задержки не любят, переделки любят ещё меньше.' }],
         insight: 'Полная остановка максимально снизила риск дефекта, но заметно ударила по сроку.',
       },
       {
         id: 'quality-contain', label: 'B', text: 'Изолируем участок, расширяем выборку и продолжаем остальное.',
-        effects: { deadlines: -4, budget: -3, team: -1, client: 1 }, flags: ['qualityContained'],
+        effects: { deadlines: -4, team: -1, client: 1 }, flags: ['qualityContained'],
         reactions: [{ id: 'quality-b-r1', author: 'alexey', text: 'Расширяю контроль вокруг проблемного участка. Остальной поток продолжит работу.' }],
         insight: 'Локализация сбалансировала скорость и контроль, потребовав точной координации.',
       },
@@ -353,19 +353,19 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'paid-preview', label: 'A', text: 'Делаем сегодня короткий оплаченный прототип изменения.',
-        effects: { deadlines: -5, budget: 5, team: -3, client: 5 }, flags: ['paidPreview'],
+        effects: { deadlines: -5, team: -3, client: 5 }, flags: ['paidPreview'],
         reactions: [{ id: 'scope-ok-a', author: 'olga', tone: 'positive', text: 'Зафиксирую формат прототипа и критерии. Клиент увидит движение, команда — границу.' }],
         insight: 'Малый оплаченный результат укрепил доверие, но отнял часть сегодняшнего фокуса.',
       },
       {
         id: 'next-release', label: 'B', text: 'Всё изменение уходит в следующий согласованный этап.',
-        effects: { deadlines: 4, budget: 4, team: 3, client: -3 }, flags: ['scopeBoundary'],
+        effects: { deadlines: 4, team: 3, client: -3 }, flags: ['scopeBoundary'],
         reactions: [{ id: 'scope-ok-b', author: 'olga', text: 'Поняла. Условия честные, но клиент рассчитывал увидеть жест доброй воли уже сегодня.' }],
         insight: 'Вы сохранили управляемость текущего дня, пожертвовав частью эмоционального кредита у клиента.',
       },
       {
         id: 'trade-feature', label: 'C', text: 'Меняем новый блок на один из старых элементов объёма.',
-        effects: { deadlines: 1, budget: 2, team: -1, client: 2 }, flags: ['scopeTradeoff'],
+        effects: { deadlines: 1, team: -1, client: 2 }, flags: ['scopeTradeoff'],
         reactions: [{ id: 'scope-ok-c', author: 'olga', text: 'Предложу обмен внутри объёма. Если выберут приоритет, общий размер задачи не вырастет.' }],
         insight: 'Обмен приоритетов сохранил объём и дал клиенту выбор без скрытого расширения работ.',
       },
@@ -389,19 +389,19 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'reset-expectations', label: 'A', text: 'Созваниваемся и заново фиксируем объём, цену и дату.',
-        effects: { deadlines: -4, budget: 4, team: 2, client: -2 }, flags: ['scopeReset'],
+        effects: { deadlines: -4, team: 2, client: -2 }, flags: ['scopeReset'],
         reactions: [{ id: 'scope-bad-a', author: 'olga', text: 'Соберу звонок. Разговор поздний, но письменная реальность всё ещё лучше устной фантазии.' }],
         insight: 'Поздняя фиксация условий стоила доверия, зато остановила дальнейший рост скрытого обязательства.',
       },
       {
         id: 'absorb-change', label: 'B', text: 'Берём изменение на себя и закрываем вопрос.',
-        effects: { deadlines: -9, budget: -9, team: -8, client: 7 }, flags: ['scopeDebt'],
+        effects: { deadlines: -9, team: -8, client: 7 }, flags: ['scopeDebt'],
         reactions: [{ id: 'scope-bad-b', author: 'olga', text: 'Клиент услышит «да». Внутри проекта это прозвучит намного громче.' }],
         insight: 'Вы защитили отношения внешне, но усилили скрытый долг по ресурсам и команде.',
       },
       {
         id: 'minimum-change', label: 'C', text: 'Предлагаем минимальный вариант сегодня, остальное — отдельным этапом.',
-        effects: { deadlines: -3, budget: -2, team: -2, client: 3 }, flags: ['minimumScope', 'scopeBoundary'],
+        effects: { deadlines: -3, team: -2, client: 3 }, flags: ['minimumScope', 'scopeBoundary'],
         reactions: [{ id: 'scope-bad-c', author: 'olga', tone: 'positive', text: 'Дам им конкретный минимум и дату продолжения. Это уже решение, а не спор о принципах.' }],
         insight: 'Минимальный результат восстановил диалог и ограничил ущерб, не решив проблему полностью.',
       },
@@ -424,13 +424,15 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'freeze-secondary', label: 'A', text: 'Замораживаем все второстепенные расходы до завтра.',
-        effects: { budget: 9, deadlines: -3, team: -3 }, flags: ['budgetFreeze'],
+        effects: { deadlines: -3, team: -3 }, flags: ['budgetFreeze'],
+        relationshipEffects: { vera: 3 },
         reactions: [{ id: 'finance-a', author: 'vera', tone: 'positive', text: 'Фиксирую стоп-лист. Манёвр вернём, часть удобных решений сегодня потеряем.' }],
         insight: 'Жёсткая приоритизация восстановила резерв, но сделала оставшуюся работу менее удобной и чуть медленнее.',
       },
       {
         id: 'request-reserve', label: 'B', text: 'Запрашиваем дополнительный резерв у руководства.',
-        effects: { budget: 12, client: -1 }, flags: ['askedExecutiveReserve'],
+        effects: { client: -1 }, flags: ['askedExecutiveReserve'],
+        relationshipEffects: { vera: 4 },
         availableWhen: any(relationship('vera', 'gte', 58), hasFlag('scopeNegotiated')),
         unavailableReason: 'Финансы не готовы поддержать запрос без доверия или оформленного клиентского объёма.',
         reactions: [{ id: 'finance-b', author: 'vera', text: 'Подготовлю цифры. Деньги возможны, вместе с ними придут вопросы и контроль.' }],
@@ -438,7 +440,8 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'keep-spending', label: 'C', text: 'Не тормозим день из-за внутреннего лимита.',
-        effects: { deadlines: 5, budget: -10, team: 1 }, flags: ['budgetRisk'],
+        effects: { deadlines: 5, team: 1 }, flags: ['budgetRisk'],
+        relationshipEffects: { vera: -4 },
         reactions: [{ id: 'finance-c', author: 'vera', text: 'Приняла. Тогда каждое следующее «срочно» должно будет объяснить, почему оно важнее завтрашнего дня.' }],
         insight: 'Вы сохранили скорость и свободу действий сейчас, приблизив финансовую границу.',
       },
@@ -462,7 +465,8 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'transparent-brief', label: 'A', text: 'Показываем реальный статус, риск и план его ограничения.',
-        effects: { deadlines: -2, budget: 2, team: 4, client: 1 }, flags: ['transparentStatus'],
+        effects: { deadlines: -2, team: 4, client: 1 }, flags: ['transparentStatus'],
+        relationshipEffects: { vera: 1 },
         reactions: [{ id: 'exec-a', author: 'vera', tone: 'positive', text: 'Хорошо. Честный статус сложнее произнести, зато после него можно получить полезное решение.' }],
         insight: 'Прозрачность укрепила внутреннее доверие и сохранила пространство для реального управленческого решения.',
       },
@@ -478,7 +482,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'request-priority', label: 'C', text: 'Просим руководство снять одну из конкурирующих задач.',
-        effects: { deadlines: 4, budget: 1, team: 6, client: -2 }, flags: ['priorityCleared'],
+        effects: { deadlines: 4, team: 6, client: -2 }, flags: ['priorityCleared'],
         availableWhen: relationship('irina', 'gte', 58),
         unavailableReason: 'Команда не поддержит эскалацию при текущем уровне рабочего доверия.',
         reactions: [{ id: 'exec-c', author: 'irina', tone: 'positive', text: 'Если снимут параллельную задачу, люди наконец будут работать с одним главным приоритетом.' }],
@@ -515,7 +519,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'drop-secondary-work', label: 'C', text: 'Снимаем второстепенные задачи и перераспределяем нагрузку.',
-        effects: { deadlines: -2, budget: -3, team: 9, client: -2 }, flags: ['workloadReset'],
+        effects: { deadlines: -2, team: 9, client: -2 }, flags: ['workloadReset'],
         reactions: [{ id: 'team-c', author: 'irina', tone: 'positive', text: 'Оставлю только то, без чего сегодняшний результат не существует. Остальное честно перенесём.' }],
         insight: 'Снижение нагрузки вернуло справедливость, но часть внешних и внутренних обещаний пришлось перенести.',
       },
@@ -541,9 +545,8 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'spot-bonus', label: 'B', text: 'Фиксируем доплату за вечер и просим последний рывок.',
-        effects: { deadlines: 6, budget: -10, team: 1 }, flags: ['paidOvertime'],
-        availableWhen: stat('budget', 'gte', 25),
-        unavailableReason: 'В бюджете нет безопасного резерва для доплаты.',
+        effects: { deadlines: 6, team: 1 }, flags: ['paidOvertime'],
+        relationshipEffects: { vera: -4 },
         reactions: [{ id: 'overheat-b', author: 'vera', text: 'Доплату проведём. Деньги не отменяют усталость, но хотя бы честно признают её цену.' }],
         insight: 'Оплаченный рывок сохранил скорость и честность обмена, но не устранил риск усталости.',
       },
@@ -583,7 +586,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'protect-capacity', label: 'C', text: 'Не добавляем задач и сохраняем устойчивый темп.',
-        effects: { deadlines: 3, team: 5, budget: 1 }, flags: ['capacityProtected'],
+        effects: { deadlines: 3, team: 5 }, flags: ['capacityProtected'],
         reactions: [{ id: 'rally-c', author: 'irina', text: 'Хорошо. Редкое управленческое решение: не заполнять свободное окно новой срочностью.' }],
         insight: 'Вы защитили рабочий ритм и не превратили появившийся запас в новый набор обязательств.',
       },
@@ -616,7 +619,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'partial-plan', label: 'B', text: 'Предлагаем частичный результат сегодня и точную дату остатка.',
-        effects: { deadlines: 3, budget: -3, team: 2, client: 5 }, flags: ['partialShipment'],
+        effects: { deadlines: 3, team: 2, client: 5 }, flags: ['partialShipment'],
         availableWhen: any(hasFlag('segmentedBatch'), hasFlag('qualityContained'), hasFlag('scopeBoundary')),
         unavailableReason: 'Сначала нужен отделимый и проверенный объём.',
         reactions: [{ id: 'status-b', author: 'olga', tone: 'positive', text: 'Разделю объём и зафиксирую вторую дату. Клиент получит результат без обещаний про магию.' }],
@@ -650,7 +653,7 @@ const scenarioCatalog: GameEvent[] = [
     choices: [
       {
         id: 'ship-now', label: 'A', text: 'Отправляем весь объём сегодня.',
-        effects: { deadlines: 13, budget: 2, team: -5, client: 5 }, flags: ['shipNow'],
+        effects: { deadlines: 13, team: -5, client: 5 }, flags: ['shipNow'],
         reactions: [
           { id: 'shipping-a-1', author: 'alexey', text: 'Закрываем документы и выпускаем машину.' },
           { id: 'shipping-a-2', author: 'olga', text: 'Подтверждаю клиенту сегодняшнюю отправку. Телефон пока не выключаю.' },
@@ -659,7 +662,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'delay-quality', label: 'B', text: 'Задерживаем отгрузку и проводим полную проверку.',
-        effects: { deadlines: -13, budget: -3, team: 5, client: -7 }, flags: ['delayForQuality', 'qualityFirst'],
+        effects: { deadlines: -13, team: 5, client: -7 }, flags: ['delayForQuality', 'qualityFirst'],
         reactions: [
           { id: 'shipping-b-1', author: 'alexey', tone: 'positive', text: 'Остаёмся на проверку. Завтра будем точно знать, что отправляем.' },
           { id: 'shipping-b-2', author: 'olga', text: 'Возьму неприятный звонок на себя. Рекламация была бы неприятнее.' },
@@ -668,7 +671,7 @@ const scenarioCatalog: GameEvent[] = [
       },
       {
         id: 'ship-partial', label: 'C', text: 'Отправляем проверенную часть, остаток — по отдельной дате.',
-        effects: { deadlines: 3, budget: -4, team: 2, client: 3 }, flags: ['partialShipment'],
+        effects: { deadlines: 3, team: 2, client: 3 }, flags: ['partialShipment'],
         availableWhen: any(hasFlag('partialShipment'), hasFlag('segmentedBatch'), hasFlag('qualityContained'), hasFlag('qualityPairing'), hasFlag('scopeBoundary')),
         unavailableReason: 'В течение дня не был подготовлен отделимый проверенный объём.',
         reactions: [

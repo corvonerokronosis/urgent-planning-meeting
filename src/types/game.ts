@@ -1,4 +1,4 @@
-export type StatKey = 'deadlines' | 'budget' | 'team' | 'client'
+export type StatKey = 'deadlines' | 'team' | 'client'
 
 export type Stats = Record<StatKey, number>
 
@@ -95,6 +95,7 @@ export type Choice = {
   label: string
   text: string
   effects: Effects
+  relationshipEffects?: Partial<Relationships>
   flags?: string[]
   reactions: Message[]
   delayedConsequences?: DelayedConsequence[]
@@ -130,6 +131,7 @@ export type DecisionRecord = {
   choiceText: string
   effects: Effects
   delayedEffects: Effects
+  delayedConsequenceTexts?: string[]
   relationshipEffects: Partial<Relationships>
   insight: string
 }
